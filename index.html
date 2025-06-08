@@ -61,10 +61,16 @@
             text-decoration: none;
             border-radius: 5px;
             transition: background 0.3s;
+            cursor: pointer;
         }
         
         nav a:hover {
             background: #0056b3;
+        }
+        
+        nav a.active {
+            background: #0056b3;
+            font-weight: bold;
         }
         
         .page-content {
@@ -159,9 +165,9 @@
         </header>
         
         <nav>
-            <a href="#" onclick="showPage('home')">Home</a>
-            <a href="#" onclick="showPage('privacy')">Privacy Policy</a>
-            <a href="#" onclick="showPage('terms')">Terms of Service</a>
+            <a href="javascript:void(0)" onclick="showPage('home')" id="nav-home" class="active">Home</a>
+            <a href="javascript:void(0)" onclick="showPage('privacy')" id="nav-privacy">Privacy Policy</a>
+            <a href="javascript:void(0)" onclick="showPage('terms')" id="nav-terms">Terms of Service</a>
         </nav>
         
         <!-- Home Page -->
@@ -464,24 +470,58 @@
     
     <script>
         function showPage(pageId) {
+            console.log('Showing page:', pageId); // Debug log
+            
             // Hide all pages
             const pages = document.querySelectorAll('.page-content');
-            pages.forEach(page => page.classList.remove('active'));
+            pages.forEach(page => {
+                page.classList.remove('active');
+                console.log('Hiding page:', page.id); // Debug log
+            });
             
             // Show selected page
-            document.getElementById(pageId).classList.add('active');
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                console.log('Showing page:', pageId); // Debug log
+            } else {
+                console.error('Page not found:', pageId);
+            }
+            
+            // Update navigation active state
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            const activeNav = document.getElementById('nav-' + pageId);
+            if (activeNav) {
+                activeNav.classList.add('active');
+            }
             
             // Update URL without page reload
             if (pageId !== 'home') {
-                window.history.pushState({}, '', '#' + pageId);
+                window.history.pushState({page: pageId}, '', '#' + pageId);
             } else {
-                window.history.pushState({}, '', window.location.pathname);
+                window.history.pushState({page: 'home'}, '', window.location.pathname);
             }
         }
         
         // Handle back button
-        window.addEventListener('popstate', function() {
+        window.addEventListener('popstate', function(event) {
             const hash = window.location.hash.replace('#', '');
+            const page = event.state?.page || hash || 'home';
+            
+            if (['home', 'privacy', 'terms'].includes(page)) {
+                showPage(page);
+            } else {
+                showPage('home');
+            }
+        });
+        
+        // Handle initial load with hash
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded'); // Debug log
+            const hash = window.location.hash.replace('#', '');
+            
             if (hash && ['privacy', 'terms'].includes(hash)) {
                 showPage(hash);
             } else {
@@ -489,11 +529,12 @@
             }
         });
         
-        // Handle initial load with hash
-        window.addEventListener('DOMContentLoaded', function() {
-            const hash = window.location.hash.replace('#', '');
-            if (hash && ['privacy', 'terms'].includes(hash)) {
-                showPage(hash);
+        // Fallback: Make sure home page is visible on load
+        window.addEventListener('load', function() {
+            const activePage = document.querySelector('.page-content.active');
+            if (!activePage) {
+                console.log('No active page found, showing home');
+                showPage('home');
             }
         });
     </script>
