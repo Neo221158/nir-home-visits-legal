@@ -52,23 +52,23 @@
             margin: 20px 0;
         }
         
-        nav a {
-            display: inline-block;
+        nav button {
             margin: 0 15px;
             padding: 10px 20px;
             background: #007bff;
             color: white;
-            text-decoration: none;
+            border: none;
             border-radius: 5px;
-            transition: background 0.3s;
             cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
         }
         
-        nav a:hover {
+        nav button:hover {
             background: #0056b3;
         }
         
-        nav a.active {
+        nav button.active {
             background: #0056b3;
             font-weight: bold;
         }
@@ -165,9 +165,9 @@
         </header>
         
         <nav>
-            <a href="javascript:void(0)" onclick="showPage('home')" id="nav-home" class="active">Home</a>
-            <a href="javascript:void(0)" onclick="showPage('privacy')" id="nav-privacy">Privacy Policy</a>
-            <a href="javascript:void(0)" onclick="showPage('terms')" id="nav-terms">Terms of Service</a>
+            <button onclick="showPage('home')" id="nav-home" class="active">Home</button>
+            <button onclick="showPage('privacy')" id="nav-privacy">Privacy Policy</button>
+            <button onclick="showPage('terms')" id="nav-terms">Terms of Service</button>
         </nav>
         
         <!-- Home Page -->
@@ -470,70 +470,48 @@
     
     <script>
         function showPage(pageId) {
-            console.log('Showing page:', pageId); // Debug log
-            
             // Hide all pages
-            const pages = document.querySelectorAll('.page-content');
-            pages.forEach(page => {
-                page.classList.remove('active');
-                console.log('Hiding page:', page.id); // Debug log
-            });
+            var pages = document.getElementsByClassName('page-content');
+            for (var i = 0; i < pages.length; i++) {
+                pages[i].classList.remove('active');
+            }
+            
+            // Remove active class from all nav buttons
+            var buttons = document.querySelectorAll('nav button');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
             
             // Show selected page
-            const targetPage = document.getElementById(pageId);
-            if (targetPage) {
-                targetPage.classList.add('active');
-                console.log('Showing page:', pageId); // Debug log
-            } else {
-                console.error('Page not found:', pageId);
-            }
+            document.getElementById(pageId).classList.add('active');
             
-            // Update navigation active state
-            const navLinks = document.querySelectorAll('nav a');
-            navLinks.forEach(link => link.classList.remove('active'));
+            // Set active nav button
+            document.getElementById('nav-' + pageId).classList.add('active');
             
-            const activeNav = document.getElementById('nav-' + pageId);
-            if (activeNav) {
-                activeNav.classList.add('active');
-            }
-            
-            // Update URL without page reload
+            // Update URL
             if (pageId !== 'home') {
-                window.history.pushState({page: pageId}, '', '#' + pageId);
+                window.history.pushState(null, null, '#' + pageId);
             } else {
-                window.history.pushState({page: 'home'}, '', window.location.pathname);
+                window.history.pushState(null, null, window.location.pathname);
             }
         }
         
-        // Handle back button
-        window.addEventListener('popstate', function(event) {
-            const hash = window.location.hash.replace('#', '');
-            const page = event.state?.page || hash || 'home';
-            
-            if (['home', 'privacy', 'terms'].includes(page)) {
-                showPage(page);
-            } else {
-                showPage('home');
-            }
-        });
-        
-        // Handle initial load with hash
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded'); // Debug log
-            const hash = window.location.hash.replace('#', '');
-            
-            if (hash && ['privacy', 'terms'].includes(hash)) {
+        // Handle page load with hash
+        window.addEventListener('load', function() {
+            var hash = window.location.hash.replace('#', '');
+            if (hash === 'privacy' || hash === 'terms') {
                 showPage(hash);
             } else {
                 showPage('home');
             }
         });
         
-        // Fallback: Make sure home page is visible on load
-        window.addEventListener('load', function() {
-            const activePage = document.querySelector('.page-content.active');
-            if (!activePage) {
-                console.log('No active page found, showing home');
+        // Handle back/forward buttons
+        window.addEventListener('popstate', function() {
+            var hash = window.location.hash.replace('#', '');
+            if (hash === 'privacy' || hash === 'terms') {
+                showPage(hash);
+            } else {
                 showPage('home');
             }
         });
